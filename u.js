@@ -1,10 +1,9 @@
 //---------------------------PROJET CONSOLE---------------------------
 console.clear();
 /**
- * 
  * @param {Number} delay
  * @param {Number} nb 
- */
+*/
 function decompte(nb,delay=1000){
     if (nb<=0) {
         return;
@@ -14,18 +13,15 @@ function decompte(nb,delay=1000){
         decompte(nb-1,delay);
     },delay);
 }
-
 var person={
     nom:"tsilavo",
     matricule:"2632",
     age:17,
-    niveau:"L2"
+    niveau:"L2",
+    direBonjour:function(){
+        console.log("Bonjour!!, je suis "+this.nom+" j'ai "+this.age+" ans");
+    }
 }
-function bonjour({nom,age,...rest}) {
-    console.log("bonjour "+nom+" agé de "+age+" ans;");
-    console.log(rest);
-}
-
 
 function wait(duration) {
     return new Promise((resolve,reject)=>{
@@ -49,9 +45,27 @@ async function b(){
     await wait(2000)
     console.log("Guys");
 }
-//---------------------------PROJET CONSOLE---------------------------
 
-//---------------------------NAVBAR---------------------------
+import { cloneObject } from "./Object.js";
+var e=cloneObject(person);
+e.nom="heritsilavo"
+e.direBonjour()
+person.direBonjour()
+
+import {createElements} from "./Dom.js"
+var e=createElements("div",{
+    class:"myElement",
+    id:"myElementId"
+})
+console.log(e.getAttribute("id"));
+//---------------------------PROJET CONSOLE---------------------------
+//--------Animation de texte chararctere par charactere--------------
+import {prepareHtmlElements,addSpanNodeToAllChar} from "./AnimParChar.js"
+prepareHtmlElements(".charactere");
+addSpanNodeToAllChar(".title",0.08)
+
+
+/*---------------------------NAVBAR---------------------------*/
 const ratio=.60;
 var sections=document.querySelectorAll(".section");
 var NavObserver=new IntersectionObserver((entries,observer)=>{
@@ -67,37 +81,17 @@ var NavObserver=new IntersectionObserver((entries,observer)=>{
         }
     });
 },{
-    rootMargin: "-39% 0px -60% 0px"
+    rootMargin: "-49% 0px -50% 0px"
     })
 sections.forEach(section => {
     NavObserver.observe(section);
 });
-//---------------------------NAVBAR---------------------------
+//---------------------------NAVBAR-----------------------------
 
 
 
 
-
-
-
-
-//animation mot par mot
-// const mot=document.querySelector(".mot p").childNodes
-// var motStr="";
-// var motTab=[]; 
-// mot.forEach((element,index) => {
-//     if(element.textContent!=""){
-//         (index!=mot.length-1) ? motStr+=element.textContent+" ":motStr+=element.textContent;
-//     }
-// });
-// motTab=motStr.split(' ');
-// motTab=motTab.map((element,indice)=>`<span><span style="animation-delay:${0.1*indice}s";>`+element+`</span></span>`)
-// motStr="";
-// motTab.forEach(element => {
-//     motStr+=element+" ";
-// });
-// document.querySelector(".mot p").innerHTML=motStr;
-// console.log(motStr);
+//----------------------ANIMATION MOT PAR MOT-------------------
 var titleObs = new IntersectionObserver((entries)=>{
     entries.forEach(entry => {
         if(entry.isIntersecting){
@@ -112,8 +106,8 @@ titleObs.observe(document.querySelector('.container-mot'))
 var sp=0;
 function AnimateTitle(selector){
     var title=document.querySelector(selector);;
-    if(title==null){
-        console.error("Imposiible de trouverl'élément"+selector);
+    if(!title){
+        throw new TypeError("Imposiible de trouverl'élément"+selector);
     }
     const childrens=Array.from(title.childNodes);
     var elements= [];
@@ -166,9 +160,6 @@ function addSpanNode(word){
 
 
 //element moving on scroll
-window.addEventListener('scroll',()=>{
-    document.getElementById("d1").innerHTML=window.scrollY;
-})
 var Scroll = document.querySelector(".scroll");
 var movable = document.querySelector(".movable");
 var obserser = new IntersectionObserver((entries)=>{
@@ -262,6 +253,43 @@ function loadCube(){
 
 
 //grabing box
+var useGrids=false;
+//grids
+function makeGrids(use){
+    if(typeof(use)!="boolean"){
+        throw new TypeError('the paramaeter must be a boolean value')
+        return
+    }
+    if(use){
+        for (let i = 0; i < 10; i++) {
+            var hGrid=document.createElement("div")
+            hGrid.classList.add("h-grid")
+            document.querySelector(".grid-container").appendChild(hGrid);
+            for (let i = 0; i < 10; i++) {
+                    var vGrid=document.createElement("div")
+                    vGrid.classList.add("v-grid")
+                    hGrid.appendChild(vGrid);
+                }
+        }
+        useGrids=true;
+        document.querySelectorAll('.box').forEach(element => {
+            element.style.top="50vh"
+            element.style.left="50vw"
+        });
+    }else{
+        document.querySelectorAll('.h-grid').forEach(element => {
+            document.querySelector('.grid-container').removeChild(element)
+        });
+        useGrids=false;
+    }
+}
+makeGrids(true);
+const chBx=document.getElementById('useGridsCheck')
+chBx.onclick=function(){
+    if(!chBx.checked)makeGrids(false);
+    else makeGrids(true);
+}
+
 var move = true;
 var box=document.querySelectorAll(".box");
 onmouseup = function(){move=false};
@@ -270,8 +298,25 @@ box.forEach(element => {
     move=true;
     onmousemove = function(event){
                 if(move){
-                    element.style.left = event.clientX-element.getBoundingClientRect().width/2+"px";
-                    element.style.top = event.clientY-element.getBoundingClientRect().height/2+"px";
+                    if (useGrids) {
+                        const width=document.querySelector(".v-grid").getBoundingClientRect().width
+                        const height=document.querySelector(".v-grid").getBoundingClientRect().height
+                        for (let i = 1; i<=10; i++) {
+                            if(event.clientX+window.scrollX<i*width&&event.clientX+window.scrollX>(i-1)*width){
+                                element.style.left=(i-1)*width+"px"
+                                for (let j = 1; j <= 10; j++) {
+                                    if(event.clientY+window.scrollY<j*height&&event.clientY+window.scrollY>(j-1)*height){
+                                        element.style.top=(j-1)*height+"px"
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }else{
+                        element.style.left = event.clientX-element.getBoundingClientRect().width/2+window.scrollX+"px";
+                        element.style.top = event.clientY-element.getBoundingClientRect().height/2+window.scrollY+"px";
+                    }
                     if(element.getBoundingClientRect().left<=0){
                         element.style.left = "0%";
                     }
